@@ -3,8 +3,8 @@ package com.librarymanagement.LibraryManagement.author;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "AuthorEntity", uniqueConstraints = @UniqueConstraint(columnNames = {"first_name","last_name"}))
-public class AuthorEntity {
+@Table(name = "Author", uniqueConstraints = @UniqueConstraint(columnNames = {"first_name","last_name"}))
+public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
@@ -19,10 +19,10 @@ public class AuthorEntity {
     @Column(name="date_of_birth")
     String dateOfBirth;
 
-    public AuthorEntity() {
+    public Author() {
     }
 
-    public AuthorEntity(String firstName, String lastName, String nationality, String dateOfBirth) {
+    public Author(String firstName, String lastName, String nationality, String dateOfBirth) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.nationality = nationality;
@@ -71,7 +71,7 @@ public class AuthorEntity {
 
     @Override
     public String toString() {
-        return "AuthorEntity{" +
+        return "Author{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
