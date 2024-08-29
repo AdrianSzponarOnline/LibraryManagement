@@ -1,5 +1,7 @@
 package com.librarymanagement.LibraryManagement.author;
 
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,19 +11,20 @@ import java.util.Optional;
 public class AuthorService {
     AuthorRepository authorRepository;
 
+    @Autowired
     public AuthorService(AuthorRepository authorRepository) {
         this.authorRepository = authorRepository;
     }
 
     // Create
-    public void saveAuthor(Author author) {
-        Optional<Author> existingAuthor =
-                authorRepository.findByFirstNameAndLastName(author.getFirstName(), author.getLastName());
+    @Transactional
+    public Author saveAuthor(Author author) {
+        Optional<Author> existingAuthor = authorRepository.findByFirstNameAndLastName(author.getFirstName(), author.getLastName());
 
         if (existingAuthor.isPresent()) {
             throw new IllegalArgumentException("Provided Author already exists");
         }
-        authorRepository.save(author);
+        return authorRepository.save(author);
     }
 
     // Read
@@ -36,7 +39,9 @@ public class AuthorService {
     }
 
     // Update
+    @Transactional
     public Author updateAuthor(long id, Author author) {
+        author.setId(id);
         Optional<Author> existinAuthorOptional = authorRepository.findById(author.getId());
 
         if (existinAuthorOptional.isPresent()) {
@@ -46,11 +51,11 @@ public class AuthorService {
             existingAuthor.setNationality(author.getNationality());
             existingAuthor.setDateOfBirth(author.getDateOfBirth());
             return authorRepository.save(existingAuthor);
-        }else
-            throw new IllegalArgumentException("Author with id " + id + " does not exist");
+        } else throw new IllegalArgumentException("Author with id " + id + " does not exist");
     }
 
     // Delete
+    @Transactional
     public void deleteAuthorById(long id) {
         if (authorRepository.existsById(id)) {
             authorRepository.deleteById(id);
