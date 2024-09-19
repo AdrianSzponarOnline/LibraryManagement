@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -14,7 +15,7 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @Autowired
-    public AuthorController(AuthorService authorService) {
+    public AuthorController(final AuthorService authorService) {
         this.authorService = authorService;
     }
 
@@ -28,11 +29,8 @@ public class AuthorController {
     }
 
     @GetMapping(value = "/authors/{id}", produces = "application/json")
-    public ResponseEntity<Author> getAuthor(@PathVariable int id) {
+    public ResponseEntity<Author> getAuthor(@PathVariable final long id) {
         Author author = authorService.getAuthorById(id);
-        if (author == null) {
-            return ResponseEntity.notFound().build();
-        }
         return ResponseEntity.ok(author);
     }
 
@@ -40,17 +38,25 @@ public class AuthorController {
     public ResponseEntity<Author> createAuthor(@Valid @RequestBody Author author) {
         author.setId(0);
         Author createdAuthor = authorService.saveAuthor(author);
-        return ResponseEntity.ok(createdAuthor);
+        return ResponseEntity
+                .created(URI.create("api/authors/" + createdAuthor.getId()))
+                .body(createdAuthor);
     }
 
     @PutMapping(value = "/authors/{id}")
-    public ResponseEntity<Author> updateAuthor(@PathVariable int id, @Valid @RequestBody Author author) {
+    public ResponseEntity<Author> updateAuthor(@PathVariable final long id, @Valid @RequestBody final Author author) {
         Author toUpdate = authorService.getAuthorById(id);
-        if (toUpdate == null) {
+        authorService.updateAuthor(id, author);
+        return ResponseEntity.ok(toUpdate);
+    }
+
+    @DeleteMapping(value = "authors/{id}")
+    public ResponseEntity<Author> deleteAuthor(@PathVariable final long id) {
+        Author toDelete = authorService.getAuthorById(id);
+        if (toDelete == null) {
             return ResponseEntity.notFound().build();
         }
-
-        authorService.updateAuthor(id, author);
-        return ResponseEntity.ok(author);
+        authorService.deleteAuthorById(id);
+        return ResponseEntity.noContent().build();
     }
 }

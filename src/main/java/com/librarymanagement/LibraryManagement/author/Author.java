@@ -2,34 +2,37 @@ package com.librarymanagement.LibraryManagement.author;
 
 import com.librarymanagement.LibraryManagement.book.Book;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-@Table(name = "author", uniqueConstraints = @UniqueConstraint(columnNames = {"first_name","last_name"}))
-public class Author {
+@Table(name = "author", uniqueConstraints = @UniqueConstraint(columnNames = {"first_name", "last_name"}))
+public class Author implements Comparable<Author>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id")
     private long id;
 
-    @Column(name="first_name")
+    @Column(name = "first_name")
+    @NotBlank(message = "First name cannot be empty")
     String firstName;
-    @Column(name="last_name")
+
+    @Column(name = "last_name")
+    @NotBlank(message = "Last name cannot be empty")
     String lastName;
-    @Column(name="nationality")
+
+    @Column(name = "nationality")
     String nationality;
 
-    @Column(name="date_of_birth")
+    @Column(name = "date_of_birth")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate dateOfBirth;
 
     @ManyToMany(mappedBy = "authors")
-    private final Set<Book> books = new HashSet<>();
+    private final Set<Book> books = new TreeSet<>();
 
     public Author() {
     }
@@ -81,12 +84,19 @@ public class Author {
         this.dateOfBirth = dateOfBirth;
     }
 
+    public Set<Book> getBooks() {
+        return books;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Author author = (Author) o;
-        return Objects.equals(firstName, author.firstName) && Objects.equals(lastName, author.lastName) && Objects.equals(nationality, author.nationality) && Objects.equals(dateOfBirth, author.dateOfBirth);
+        return Objects.equals(firstName, author.firstName)
+                && Objects.equals(lastName, author.lastName)
+                && Objects.equals(nationality, author.nationality)
+                && Objects.equals(dateOfBirth, author.dateOfBirth);
     }
 
     @Override
@@ -103,5 +113,22 @@ public class Author {
                 ", nationality='" + nationality + '\'' +
                 ", dateOfBirth='" + dateOfBirth + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Author o) {
+        int lastNameComparison = this.lastName.compareTo(o.lastName);
+        if (lastNameComparison != 0) {
+            return lastNameComparison;
+        }
+
+        // Jeśli nazwiska są równe, porównujemy imiona
+        int firstNameComparison = this.firstName.compareTo(o.firstName);
+        if (firstNameComparison != 0) {
+            return firstNameComparison;
+        }
+
+        // Jeśli nazwiska i imiona są równe, porównujemy daty urodzenia
+        return this.dateOfBirth.compareTo(o.dateOfBirth);
     }
 }

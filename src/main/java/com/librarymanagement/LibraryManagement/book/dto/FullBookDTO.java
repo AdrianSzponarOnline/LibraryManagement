@@ -1,24 +1,29 @@
 package com.librarymanagement.LibraryManagement.book.dto;
 
 import com.librarymanagement.LibraryManagement.author.Author;
+import com.librarymanagement.LibraryManagement.author.dto.AuthorDTO;
 import com.librarymanagement.LibraryManagement.category.Category;
+import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
 
 import java.util.List;
 
-public class FullBookDTO {
+public class FullBookDTO implements BookDTO{
     private long id;
     private String title;
     private String isbn;
     private int year;
-    private List<Author> authors;
-    private List<Category> categories;
+    private List<AuthorDTO> authors;
+    private List<CategoryDTO> categories;
 
-    public FullBookDTO(String title, String isbn, int year, List<Author> authors, List<Category> categories) {
+    public FullBookDTO(String title, String isbn, int year, List<AuthorDTO> authors, List<CategoryDTO> categories) {
         this.title = title;
         this.isbn = isbn;
         this.year = year;
         this.authors = authors;
         this.categories = categories;
+    }
+
+    public FullBookDTO() {
     }
 
     public long getId() {
@@ -53,19 +58,19 @@ public class FullBookDTO {
         this.year = year;
     }
 
-    public List<Author> getAuthors() {
+    public List<AuthorDTO> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<Author> authors) {
+    public void setAuthors(List<AuthorDTO> authors) {
         this.authors = authors;
     }
 
-    public List<Category> getCategories() {
+    public List<CategoryDTO> getCategories() {
         return categories;
     }
 
-    public void setCategories(List<Category> categories) {
+    public void setCategories(List<CategoryDTO> categories) {
         this.categories = categories;
     }
 
