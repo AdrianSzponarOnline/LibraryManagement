@@ -1,5 +1,6 @@
 package com.librarymanagement.LibraryManagement.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.librarymanagement.LibraryManagement.book.Book;
 import jakarta.persistence.*;
 
@@ -9,7 +10,7 @@ import java.util.TreeSet;
 
 @Entity
 @Table(name = "category")
-public class Category {
+public class Category implements Comparable<Category> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -19,6 +20,7 @@ public class Category {
     private String categoryName;
 
     @ManyToMany(mappedBy = "categories")
+    @JsonIgnore
     private Set<Book> books = new TreeSet<>();
 
     public Category() {
@@ -45,6 +47,14 @@ public class Category {
         this.categoryName = name;
     }
 
+    public Set<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(Set<Book> books) {
+        this.books = books;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,5 +75,21 @@ public class Category {
                 ", name='" + categoryName + '\'' +
                 ", books=" + books +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Category o) {
+        return this.categoryName.compareTo(o.categoryName);
+    }
+
+    //helper methods
+
+    public void addBook(Book book) {
+        this.books.add(book);
+        book.getCategories().add(this);
+    }
+    public void removeBook(Book book) {
+        books.remove(book);
+        book.getCategories().remove(this);
     }
 }

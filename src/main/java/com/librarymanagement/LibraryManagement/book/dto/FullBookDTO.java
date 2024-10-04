@@ -1,21 +1,31 @@
 package com.librarymanagement.LibraryManagement.book.dto;
 
-import com.librarymanagement.LibraryManagement.author.Author;
-import com.librarymanagement.LibraryManagement.author.dto.AuthorDTO;
-import com.librarymanagement.LibraryManagement.category.Category;
+import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
+import jakarta.validation.constraints.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FullBookDTO implements BookDTO{
-    private long id;
+    @NotNull(message = "Title cannot be null")
+    @Size(min = 1, max = 100, message = "Title must not be empty")
     private String title;
-    private String isbn;
-    private int year;
-    private List<AuthorDTO> authors;
-    private List<CategoryDTO> categories;
 
-    public FullBookDTO(String title, String isbn, int year, List<AuthorDTO> authors, List<CategoryDTO> categories) {
+    @NotNull(message = "ISBN cannot be null")
+    @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{6}-\\d{1}-\\d{1}", message = "ISBN must be a 13-digit number")
+    private String isbn;
+
+    @Min(value = 1450, message = "Year should be not less than 1450")
+    @Max(value = 2024, message = "Year should not me more than 2024")
+    private int year;
+
+    private List<BaseAuthorDTO> authors = new ArrayList<>();
+    private List<CategoryDTO> categories  = new ArrayList<>();
+
+
+
+    public FullBookDTO(String title, String isbn, int year, List<BaseAuthorDTO> authors, List<CategoryDTO> categories) {
         this.title = title;
         this.isbn = isbn;
         this.year = year;
@@ -26,13 +36,6 @@ public class FullBookDTO implements BookDTO{
     public FullBookDTO() {
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public String getTitle() {
         return title;
@@ -58,11 +61,11 @@ public class FullBookDTO implements BookDTO{
         this.year = year;
     }
 
-    public List<AuthorDTO> getAuthors() {
+    public List<BaseAuthorDTO> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<AuthorDTO> authors) {
+    public void setAuthors(List<BaseAuthorDTO> authors) {
         this.authors = authors;
     }
 
@@ -76,6 +79,12 @@ public class FullBookDTO implements BookDTO{
 
     @Override
     public String toString() {
-        return "FullBookDTO{" + "id=" + id + ", title='" + title + '\'' + ", isbn='" + isbn + '\'' + ", year=" + year + ", authors=" + authors + ", categories=" + categories + '}';
+        return "FullBookDTO{" +
+                "title='" + title + '\'' +
+                ", isbn='" + isbn + '\'' +
+                ", year=" + year +
+                ", authors=" + authors +
+                ", categories=" + categories +
+                '}';
     }
 }

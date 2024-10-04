@@ -1,16 +1,21 @@
 package com.librarymanagement.LibraryManagement.author;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.librarymanagement.LibraryManagement.book.Book;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.*;
 
 @Entity
-@Table(name = "author", uniqueConstraints = @UniqueConstraint(columnNames = {"first_name", "last_name"}))
-public class Author implements Comparable<Author>{
+@Table(name = "author", uniqueConstraints = @UniqueConstraint(
+        name = "UK_firstname_lastname_nationality_dateofbirth",
+        columnNames = {"first_name", "last_name", "nationality", "date_of_birth"})
+)
+public class Author implements Comparable<Author> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -24,15 +29,20 @@ public class Author implements Comparable<Author>{
     @NotBlank(message = "Last name cannot be empty")
     String lastName;
 
+
     @Column(name = "nationality")
+    @NotBlank(message = "Nati cannot be empty")
     String nationality;
 
     @Column(name = "date_of_birth")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @NotNull(message = "Last name cannot be empty")
     LocalDate dateOfBirth;
 
-    @ManyToMany(mappedBy = "authors")
-    private final Set<Book> books = new TreeSet<>();
+
+    @ManyToMany(mappedBy = "authors", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH}, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<Book> books = new TreeSet<>();
 
     public Author() {
     }
@@ -59,6 +69,7 @@ public class Author implements Comparable<Author>{
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
+
 
     public String getLastName() {
         return lastName;
@@ -87,6 +98,10 @@ public class Author implements Comparable<Author>{
     public Set<Book> getBooks() {
         return books;
     }
+    public void setBooks(Set<Book> books) {
+        this.books = books;
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -111,7 +126,7 @@ public class Author implements Comparable<Author>{
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", nationality='" + nationality + '\'' +
-                ", dateOfBirth='" + dateOfBirth + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
                 '}';
     }
 
@@ -131,4 +146,15 @@ public class Author implements Comparable<Author>{
         // Jeśli nazwiska i imiona są równe, porównujemy daty urodzenia
         return this.dateOfBirth.compareTo(o.dateOfBirth);
     }
+    //helper methods
+
+    public void addBook(Book book) {
+        this.books.add(book);
+        book.getAuthors().add(this);
+    }
+    public void removeBook(Book book) {
+        this.books.remove(book);
+        book.getAuthors().remove(this);
+    }
+
 }

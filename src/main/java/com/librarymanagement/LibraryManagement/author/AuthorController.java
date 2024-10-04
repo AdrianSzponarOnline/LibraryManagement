@@ -51,12 +51,14 @@ public class AuthorController {
     }
 
     @DeleteMapping(value = "authors/{id}")
-    public ResponseEntity<Author> deleteAuthor(@PathVariable final long id) {
+    public ResponseEntity<Void> deleteAuthor(@PathVariable final long id) {
         Author toDelete = authorService.getAuthorById(id);
+
         if (toDelete == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build();  // Return 404 if author doesn't exist
         }
-        authorService.deleteAuthorById(id);
-        return ResponseEntity.noContent().build();
+
+        authorService.deleteAuthorById(id);  // Perform the deletion
+        return ResponseEntity.noContent().build();  // Return 204 (No Content) on successful deletion
     }
 }

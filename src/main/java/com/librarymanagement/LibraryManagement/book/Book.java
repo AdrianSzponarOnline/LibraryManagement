@@ -47,7 +47,7 @@ public class Book implements Comparable<Book> {
     public Book() {
     }
 
-    public Book( String title, String isbn, Set<Category> categories, int year, Set<Author> authors) {
+    public Book(String title, String isbn, Set<Category> categories, int year, Set<Author> authors) {
         this.title = title;
         this.isbn = isbn;
         this.categories = categories;
@@ -105,7 +105,14 @@ public class Book implements Comparable<Book> {
 
     @Override
     public String toString() {
-        return "Book{" + "id=" + id + ", title='" + title + '\'' + ", categories=" + categories + ", year=" + year + '}';
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", isbn='" + isbn + '\'' +
+                ", year=" + year +
+                ", authors=" + authors +
+                ", categories=" + categories +
+                '}';
     }
 
     @Override
@@ -127,4 +134,35 @@ public class Book implements Comparable<Book> {
     public int compareTo(Book other) {
         return this.title.compareTo(other.title);
     }
+
+    //helper methods
+
+    public void addAuthor(Author author) {
+        if (!this.authors.contains(author)) {
+            this.authors.add(author);
+            author.getBooks().add(this);  // Utrzymanie relacji dwustronnej
+        }
+    }
+
+    public void removeAuthor(Author author) {
+        if (this.authors.contains(author)) {
+            this.authors.remove(author);
+            author.getBooks().remove(this);  // Usunięcie książki z listy autora
+        }
+    }
+
+    public void addCategory(Category category) {
+        if (!this.categories.contains(category)) {
+            this.categories.add(category);
+            category.getBooks().add(this);
+        }
+    }
+
+    public void removeCategory(Category category) {
+        this.categories.remove(category);
+        category.getBooks().remove(this);
+    }
 }
+
+// helper methods
+
