@@ -8,6 +8,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class FullAuthorDTO implements AuthorDTO {
+
+    private long id;
+
+
+
     @NotNull(message = "First name cannot be null")
     @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s]{1,45}$", message = "First name must be between 1 and 45 characters and contain only letters and spaces")
     private String firstName;
@@ -35,6 +40,14 @@ public class FullAuthorDTO implements AuthorDTO {
         this.nationality = nationality;
         this.dateOfBirth = dateOfBirth;
         this.books = books;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getFirstName() {

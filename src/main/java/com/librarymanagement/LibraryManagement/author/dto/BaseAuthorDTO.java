@@ -1,5 +1,6 @@
 package com.librarymanagement.LibraryManagement.author.dto;
 
+import com.librarymanagement.LibraryManagement.author.Author;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
@@ -31,6 +32,8 @@ public class BaseAuthorDTO implements AuthorDTO{
         this.nationality = nationality;
         this.dateOfBirth = dateOfBirth;
     }
+
+
 
 
     @Override

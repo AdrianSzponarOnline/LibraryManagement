@@ -16,4 +16,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Modifying
     @Query(value = "DELETE FROM book_author WHERE author_id = :authorId", nativeQuery = true)
     void deleteBooksByAuthorId(@Param("authorId") long authorId);
+
+
 }

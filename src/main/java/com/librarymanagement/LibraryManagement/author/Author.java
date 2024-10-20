@@ -31,7 +31,7 @@ public class Author implements Comparable<Author> {
 
 
     @Column(name = "nationality")
-    @NotBlank(message = "Nati cannot be empty")
+    @NotBlank(message = "Nationality cannot be empty")
     String nationality;
 
     @Column(name = "date_of_birth")
@@ -42,7 +42,7 @@ public class Author implements Comparable<Author> {
 
     @ManyToMany(mappedBy = "authors", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JsonIgnore
-    private Set<Book> books = new TreeSet<>();
+    private Set<Book> books = new HashSet<>();
 
     public Author() {
     }

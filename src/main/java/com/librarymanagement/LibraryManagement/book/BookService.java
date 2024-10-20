@@ -6,8 +6,6 @@ import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
 import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.author.exception.AuthorNotFoundException;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
-import com.librarymanagement.LibraryManagement.book.dto.BookMapper;
-import com.librarymanagement.LibraryManagement.book.dto.FullBookDTO;
 import com.librarymanagement.LibraryManagement.book.exception.BookAlreadyExistsException;
 import com.librarymanagement.LibraryManagement.book.exception.BookNotFoundException;
 import com.librarymanagement.LibraryManagement.category.Category;
@@ -38,42 +36,36 @@ public class BookService {
     }
 
     @Transactional
-    public Book saveBook(FullBookDTO bookDTO) {
-        // Convert the DTO to an entity
-        Book book = BookMapper.toEntity(bookDTO);
-        System.out.println(book);
-
-        // Check if the book already exists
-        checkIfBookExists(book);
+    public Book saveBook(Book toSave) throws BookAlreadyExistsException {
         // Process authors and categories if present, otherwise assign empty sets
         Set<Author> authors = new HashSet<>();
         Set<Category> categories = new HashSet<>();
 
-        if (bookDTO.getAuthors() != null && !bookDTO.getAuthors().isEmpty()) {
-            authors = processAuthors(new HashSet<>(bookDTO.getAuthors()), book);
+        if (toSave.getAuthors() != null && !toSave.getAuthors().isEmpty()) {
+            authors = processAuthors(toSave.getAuthors(), toSave);
         }
 
-        if (bookDTO.getCategories() != null && !bookDTO.getCategories().isEmpty()) {
-            categories = processCategories(new HashSet<>(bookDTO.getCategories()), book);
+        if (toSave.getCategories() != null && !toSave.getCategories().isEmpty()) {
+            categories = processCategories(toSave.getCategories(), toSave);
         }
 
         // Set authors and categories to the book
-        book.setAuthors(authors);
-        book.setCategories(categories);
+        toSave.setAuthors(authors);
+        toSave.setCategories(categories);
 
-        // Save the book again to persist the relationships
-        return bookRepository.save(book);
+        // Now, check if the book already exists
+        checkIfBookExists(toSave);
+
+        // Save the book to persist the relationships
+        return bookRepository.save(toSave);
     }
+
 
 
     //Read
 
-    public List<BookDTO> getAllBooks() {
-        List<BookDTO> bookDTOs = new ArrayList<>();
-        for (Book book : bookRepository.findAll()) {
-            bookDTOs.add(toDto(book));
-        }
-        return bookDTOs;
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
     }
 
     public BookDTO getBookById(long id) {
@@ -95,29 +87,30 @@ public class BookService {
     }
 
 
-    @Transactional
-    public Book updateBook(long id, FullBookDTO bookDTO) {
-        Book toUpdate = findBookOrThrow(id);
 
-        // Update podstawowych pól
-        toUpdate.setTitle(bookDTO.getTitle());
-        toUpdate.setIsbn(bookDTO.getIsbn());
-        toUpdate.setYear(bookDTO.getYear());
+    @Transactional
+    public Book updateBook(long id, Book toUpdate) {
+        Book inDb = findBookOrThrow(id);
+
+        // Aktualizacja podstawowych pól
+        inDb.setTitle(toUpdate.getTitle());
+        inDb.setIsbn(toUpdate.getIsbn());
+        inDb.setYear(toUpdate.getYear());
 
         // Aktualizacja autorów
-        if (bookDTO.getAuthors() != null && !bookDTO.getAuthors().isEmpty()) {
-            Set<Author> updatedAuthors = processAuthors(new HashSet<>(bookDTO.getAuthors()), toUpdate);
-            toUpdate.setAuthors(updatedAuthors);
+        if (toUpdate.getAuthors() != null && !toUpdate.getAuthors().isEmpty()) {
+            Set<Author> updatedAuthors = processAuthors(toUpdate.getAuthors(), inDb);
+            inDb.setAuthors(updatedAuthors);  // Aktualizuj autorów w encji z bazy (inDb)
         }
 
         // Aktualizacja kategorii
-        if (bookDTO.getCategories() != null && !bookDTO.getCategories().isEmpty()) {
-            Set<Category> updatedCategories = processCategories(new HashSet<>(bookDTO.getCategories()), toUpdate);
-            toUpdate.setCategories(updatedCategories);
+        if (toUpdate.getCategories() != null && !toUpdate.getCategories().isEmpty()) {
+            Set<Category> updatedCategories = processCategories(new HashSet<>(toUpdate.getCategories()), inDb);
+            inDb.setCategories(updatedCategories);  // Aktualizuj kategorie w encji z bazy (inDb)
         }
 
         // Zapisz zaktualizowaną książkę
-        return bookRepository.save(toUpdate);
+        return bookRepository.save(inDb);  // Zapisujemy encję pobraną z bazy, a nie toUpdate
     }
 
 
@@ -129,43 +122,9 @@ public class BookService {
     }
 
     // helper methods
-    private Book findBookOrThrow(long id) {
+    public Book findBookOrThrow(long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException("Book with id " + id + " not found"));
-    }
-
-
-    @Transactional
-    public Book addAuthorsToBook(long bookId, BaseAuthorDTO authorToAdd) {
-        Book book = findBookOrThrow(bookId);
-        Author newAuthor = AuthorMapper.toEntity(authorToAdd);
-        Optional<Author> authorInDb = findByAuthorInfo(newAuthor);
-
-        if (authorInDb.isPresent()) {
-            newAuthor = authorInDb.get();
-        } else {
-            authorRepository.save(newAuthor);
-        }
-
-        // Helper method adds entries on both side of relationship
-        book.addAuthor(newAuthor);
-
-        // Adding entries in the intermediate method
-        return bookRepository.save(book);
-    }
-
-    @Transactional
-    public Book removeAuthorFormBook(long bookId, BaseAuthorDTO authorToRemove) {
-        Book book = findBookOrThrow(bookId);
-        Optional<Author> authorInDb = findByAuthorInfo(AuthorMapper.toEntity(authorToRemove));
-
-        if (authorInDb.isPresent()) {
-            Author author = authorInDb.get();
-            book.removeAuthor(author);
-            return bookRepository.save(book);
-        } else {
-            throw new AuthorNotFoundException("Author not found");
-        }
     }
 
 
@@ -191,61 +150,72 @@ public class BookService {
             throw new BookAlreadyExistsException("Book already exists");
         }
     }
-    @Transactional
-    protected Set<Author> processAuthors(Set<BaseAuthorDTO> authorDTOs, Book book) {
-        Set<Author> authors = book.getAuthors() != null ? book.getAuthors() : new HashSet<>();
 
-        for (BaseAuthorDTO authorDTO : authorDTOs) {
+
+
+    @Transactional
+    protected Set<Category> processCategories(Set<Category> categoryDTOs, Book book) {
+        Set<Category> processedCategories = new HashSet<>();
+
+        for (Category categoryToProcess : categoryDTOs) {
+            // Sprawdź, czy kategoria o danej nazwie już istnieje w bazie danych
+            Optional<Category> existingCategory = categoryRepository.findByCategoryName(categoryToProcess.getCategoryName());
+
+            Category category;
+            if (existingCategory.isPresent()) {
+                category = existingCategory.get();
+            } else {
+                // Zapisz nową kategorię do bazy danych
+                category = categoryRepository.save(categoryToProcess);
+            }
+
+            // Dodaj kategorię do zbioru przetworzonych kategorii
+            processedCategories.add(category);
+
+            // Dodaj książkę do kategorii, jeśli nie jest już przypisana
+            if (!category.getBooks().contains(book)) {
+                category.getBooks().add(book);
+            }
+
+            // Dodaj kategorię do książki, jeśli nie jest już przypisana
+            if (!book.getCategories().contains(category)) {
+                book.getCategories().add(category);
+            }
+        }
+
+        return processedCategories;
+    }
+
+
+    protected Set<Author> processAuthors(Set<Author> authorsToProcess, Book book) {
+        Set<Author> existingAuthors = book.getAuthors() != null ? book.getAuthors() : new HashSet<>();
+
+        for (Author authorToProcess : authorsToProcess) {
             Optional<Author> existingAuthor = authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
-                    authorDTO.getFirstName(),
-                    authorDTO.getLastName(),
-                    authorDTO.getNationality(),
-                    authorDTO.getDateOfBirth()
+                    authorToProcess.getFirstName(),
+                    authorToProcess.getLastName(),
+                    authorToProcess.getNationality(),
+                    authorToProcess.getDateOfBirth()
             );
 
             Author author;
             if (existingAuthor.isPresent()) {
                 author = existingAuthor.get();
             } else {
-                author = AuthorMapper.toEntity(authorDTO);
-                authorRepository.save(author);
+                author = authorToProcess;
+                authorRepository.save(author);  // Zapisz autora przed dodaniem do książki
             }
 
-            // Dodaj autora, jeśli go jeszcze nie ma w zbiorze
-            if (!authors.contains(author)) {
-                authors.add(author);
-                author.getBooks().add(book);  // Zarządzaj relacją po obu stronach
-            }
-        }
-
-        return authors;
-    }
-
-
-    @Transactional
-    protected Set<Category> processCategories(Set<CategoryDTO> categoryDTOs, Book book) {
-        Set<Category> categories = book.getCategories() != null ? book.getCategories() : new HashSet<>();
-
-        for (CategoryDTO categoryDTO : categoryDTOs) {
-            Optional<Category> existingCategory = categoryRepository.findByCategoryName(categoryDTO.getCategoryName());
-
-            Category category;
-            if (existingCategory.isPresent()) {
-                category = existingCategory.get();
-            } else {
-                category = CategoryMapper.toCategory(categoryDTO);
-                categoryRepository.save(category);
-            }
-
-            // Dodaj kategorię, jeśli jej jeszcze nie ma w zbiorze
-            if (!categories.contains(category)) {
-                categories.add(category);
-                category.getBooks().add(book);  // Zarządzaj relacją po obu stronach
+            if (!existingAuthors.contains(author)) {
+                existingAuthors.add(author);
+                author.getBooks().add(book);
             }
         }
 
-        return categories;
+        return existingAuthors;
     }
+
+
 
 
 

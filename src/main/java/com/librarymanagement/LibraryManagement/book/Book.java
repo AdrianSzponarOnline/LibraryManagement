@@ -5,10 +5,7 @@ import com.librarymanagement.LibraryManagement.category.Category;
 import jakarta.persistence.*;
 
 
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 @Entity
 @Table(name = "book", uniqueConstraints = {@UniqueConstraint(name = "UK_isbn", columnNames = {"isbn"})})
@@ -55,6 +52,10 @@ public class Book implements Comparable<Book> {
         this.authors = authors;
     }
 
+    public Set<Author> getAuthors() {
+        return authors;
+    }
+
     public long getId() {
         return id;
     }
@@ -79,9 +80,7 @@ public class Book implements Comparable<Book> {
         this.year = year;
     }
 
-    public TreeSet<Author> getAuthors() {
-        return new TreeSet<>(authors);
-    }
+
 
     public void setAuthors(Set<Author> authors) {
         this.authors = authors;

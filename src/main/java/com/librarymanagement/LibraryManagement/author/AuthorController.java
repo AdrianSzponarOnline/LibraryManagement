@@ -1,5 +1,8 @@
 package com.librarymanagement.LibraryManagement.author;
 
+import com.librarymanagement.LibraryManagement.author.dto.AuthorDTO;
+import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
+import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -20,13 +25,21 @@ public class AuthorController {
     }
 
     @GetMapping(value = "/authors")
-    public ResponseEntity<List<Author>> getAllAuthors() {
+    public ResponseEntity<Set<BaseAuthorDTO>> getAllAuthors() {
         List<Author> authors = authorService.getAllAuthors();
+
         if (authors.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(authors);
+
+        // Mapowanie listy Author na Set BaseAuthorDTO
+        Set<BaseAuthorDTO> authorDTOS = authors.stream()
+                .map(AuthorMapper::toBaseDTO)
+                .collect(Collectors.toSet());
+
+        return ResponseEntity.ok(authorDTOS);
     }
+
 
     @GetMapping(value = "/authors/{id}", produces = "application/json")
     public ResponseEntity<Author> getAuthor(@PathVariable final long id) {
