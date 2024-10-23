@@ -88,6 +88,7 @@ public class Category implements Comparable<Category> {
         this.books.add(book);
         book.getCategories().add(this);
     }
+
     public void removeBook(Book book) {
         books.remove(book);
         book.getCategories().remove(this);

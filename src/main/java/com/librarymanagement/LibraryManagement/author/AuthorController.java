@@ -48,7 +48,8 @@ public class AuthorController {
     }
 
     @PostMapping(value = "/authors")
-    public ResponseEntity<Author> createAuthor(@Valid @RequestBody Author author) {
+    public ResponseEntity<Author> createAuthor(@Valid @RequestBody AuthorDTO authorDTO) {
+        Author author = AuthorMapper.toEntity((BaseAuthorDTO) authorDTO);
         author.setId(0);
         Author createdAuthor = authorService.saveAuthor(author);
         return ResponseEntity
@@ -57,20 +58,14 @@ public class AuthorController {
     }
 
     @PutMapping(value = "/authors/{id}")
-    public ResponseEntity<Author> updateAuthor(@PathVariable final long id, @Valid @RequestBody final Author author) {
-        Author toUpdate = authorService.getAuthorById(id);
-        authorService.updateAuthor(id, author);
-        return ResponseEntity.ok(toUpdate);
+    public ResponseEntity<Author> updateAuthor(@PathVariable final long id, @Valid @RequestBody final BaseAuthorDTO authorDTO) {
+        Author authorToUpdate = AuthorMapper.toEntity(authorDTO);
+        authorService.updateAuthor(id, authorToUpdate);
+        return ResponseEntity.ok(authorToUpdate);
     }
 
     @DeleteMapping(value = "authors/{id}")
     public ResponseEntity<Void> deleteAuthor(@PathVariable final long id) {
-        Author toDelete = authorService.getAuthorById(id);
-
-        if (toDelete == null) {
-            return ResponseEntity.notFound().build();  // Return 404 if author doesn't exist
-        }
-
         authorService.deleteAuthorById(id);  // Perform the deletion
         return ResponseEntity.noContent().build();  // Return 204 (No Content) on successful deletion
     }

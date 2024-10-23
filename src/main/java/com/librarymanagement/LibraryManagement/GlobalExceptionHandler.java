@@ -4,6 +4,7 @@ import com.librarymanagement.LibraryManagement.author.exception.AuthorAlreadyExi
 import com.librarymanagement.LibraryManagement.author.exception.AuthorNotFoundException;
 import com.librarymanagement.LibraryManagement.book.exception.BookAlreadyExistsException;
 import com.librarymanagement.LibraryManagement.book.exception.BookNotFoundException;
+import com.librarymanagement.LibraryManagement.category.exception.CategoryNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -49,6 +50,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<String> handleCategoryNotFoundException(CategoryNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
 
 
 }

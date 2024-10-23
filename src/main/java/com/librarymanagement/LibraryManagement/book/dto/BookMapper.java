@@ -47,7 +47,7 @@ public class BookMapper {
         book.setIsbn(dto.getIsbn());
         book.setYear(dto.getYear());
 
-        // Map authors
+        // Map authors.html
         if (dto instanceof FullBookDTO fullBookDTO) {
             Set<Author> authors = fullBookDTO.getAuthors().stream()
                     .map(AuthorMapper::toEntity)

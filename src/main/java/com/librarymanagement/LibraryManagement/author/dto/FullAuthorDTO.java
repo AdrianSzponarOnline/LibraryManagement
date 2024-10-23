@@ -1,5 +1,6 @@
 package com.librarymanagement.LibraryManagement.author.dto;
 
+import com.librarymanagement.LibraryManagement.book.dto.BaseBookDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -29,12 +30,12 @@ public class FullAuthorDTO implements AuthorDTO {
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in the format yyyy-mm-dd")
     private LocalDate dateOfBirth;
 
-    private List<BookDTO> books;
+    private List<BaseBookDTO> books;
 
     public FullAuthorDTO() {
     }
 
-    public FullAuthorDTO(String firstName, String lastName, String nationality, LocalDate dateOfBirth, List<BookDTO> books) {
+    public FullAuthorDTO(String firstName, String lastName, String nationality, LocalDate dateOfBirth, List<BaseBookDTO> books) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.nationality = nationality;
@@ -78,11 +79,11 @@ public class FullAuthorDTO implements AuthorDTO {
         return dateOfBirth;
     }
 
-    public void setBooks(List<BookDTO> books) {
+    public void setBooks(List<BaseBookDTO> books) {
         this.books = books;
     }
 
-    public List<BookDTO> getBooks() {
+    public List<BaseBookDTO> getBooks() {
         return books;
     }
 

@@ -1,5 +1,8 @@
 package com.librarymanagement.LibraryManagement.category.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
 public class CategoryDTO {
     private long id;
     private String categoryName;
@@ -11,7 +14,8 @@ public class CategoryDTO {
 
     public CategoryDTO() {
     }
-
+    @NotNull
+    @Pattern(regexp = "")
     public String getCategoryName() {
         return categoryName;
     }

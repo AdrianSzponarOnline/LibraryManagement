@@ -83,7 +83,7 @@ public class FullBookDTO implements BookDTO{
                 "title='" + title + '\'' +
                 ", isbn='" + isbn + '\'' +
                 ", year=" + year +
-                ", authors=" + authors +
+                ", authors.html=" + authors +
                 ", categories=" + categories +
                 '}';
     }

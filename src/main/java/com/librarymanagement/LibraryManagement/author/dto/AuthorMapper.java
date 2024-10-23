@@ -3,9 +3,6 @@ package com.librarymanagement.LibraryManagement.author.dto;
 import com.librarymanagement.LibraryManagement.author.Author;
 import com.librarymanagement.LibraryManagement.book.Book;
 import com.librarymanagement.LibraryManagement.book.dto.BaseBookDTO;
-import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
-
-
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -21,7 +18,7 @@ public class AuthorMapper {
 
         //map books
         if (author.getBooks() != null) {
-            List<BookDTO> books = author.getBooks().stream()
+            List<BaseBookDTO> books = author.getBooks().stream()
                     .map(b -> {
                         BaseBookDTO baseBookDTO = new BaseBookDTO();
                         baseBookDTO.setTitle(b.getTitle());

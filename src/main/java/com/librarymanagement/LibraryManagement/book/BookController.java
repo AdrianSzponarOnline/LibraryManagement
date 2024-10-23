@@ -1,5 +1,5 @@
 package com.librarymanagement.LibraryManagement.book;
-
+import com.librarymanagement.LibraryManagement.book.BookService;
 import com.librarymanagement.LibraryManagement.author.Author;
 import com.librarymanagement.LibraryManagement.author.AuthorService;
 import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
@@ -11,11 +11,12 @@ import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -24,17 +25,22 @@ public class BookController {
     private final AuthorService authorService;
 
     @Autowired
-    public BookController(final BookService bookService, AuthorService authorService) {
+    public BookController(BookService bookService, AuthorService authorService) {
         this.bookService = bookService;
         this.authorService = authorService;
+    }
+    @GetMapping("/hello")
+    public String hello(Model model) {
+        System.out.println("HelloController: /hello endpoint called");
+        model.addAttribute("Adrian", java.time.LocalDate.now());
+        return "hello";
     }
 
     @GetMapping(value = "/books")
     public ResponseEntity<List<BookDTO>> getAllBooks() {
-        List<BookDTO> books = new ArrayList<>();
-        for(Book book : bookService.getAllBooks()) {
-            books.add(BookMapper.toDto(book));
-        }
+        List<BookDTO> books = bookService.getAllBooks().stream()
+                .map(BookMapper::toDto)
+                .collect(Collectors.toList());
         if (books.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -58,12 +64,12 @@ public class BookController {
     }
 
     @PostMapping(value = "/books/{bookId}/authors")
-    public ResponseEntity<BookDTO> addAuthorToBook(@PathVariable long bookId, @RequestBody final BaseAuthorDTO authorDTO) {
+    public ResponseEntity<BookDTO> addAuthorToBook(@PathVariable long bookId,@Valid @RequestBody final BaseAuthorDTO authorDTO) {
         // Mapowanie BaseAuthorDTO do encji Author
         Author author = AuthorMapper.toEntity(authorDTO);
 
         // Dodanie autora do książki
-        Book toUpdate = authorService.addAuthorToBook(bookId, author);
+        Book toUpdate = bookService.addAuthorToBook(bookId, author);
 
         if (toUpdate == null) {
             return ResponseEntity.notFound().build();
@@ -73,7 +79,7 @@ public class BookController {
     }
 
     @PostMapping(value = "/books/{bookId}/categories")
-    public ResponseEntity<BookDTO> addCategoryToBook(@PathVariable long bookId, @RequestBody final CategoryDTO categoryDTO) {
+    public ResponseEntity<BookDTO> addCategoryToBook(@PathVariable long bookId,@Valid @RequestBody final CategoryDTO categoryDTO) {
         Book toUpdate = bookService.addCategoryToBook(bookId, categoryDTO);
         if(toUpdate == null) {
             return ResponseEntity.notFound().build();
@@ -93,18 +99,17 @@ public class BookController {
 
 
     @DeleteMapping(value = "/books/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable final long id) {
-        BookDTO toDelete = bookService.getBookById(id);
-        if (toDelete == null) {
+    public ResponseEntity<Void> deleteBookById(@PathVariable final long id) {
+        if(bookService.deleteBookById(id)){
+            return ResponseEntity.noContent().build();
+        }else {
             return ResponseEntity.notFound().build();
         }
-        bookService.deleteBookById(id);
-        return ResponseEntity.noContent().build();
     }
     @DeleteMapping("/books/{bookId}/authors/{authorId}")
     public ResponseEntity<Void> deleteAuthorFromBook(@PathVariable long bookId,
                                                      @PathVariable long authorId) {
-        authorService.removeAuthorFromBook(bookId, authorId);
+        bookService.removeAuthorFromBook(bookId, authorId);
         return ResponseEntity.noContent().build();
     }
 

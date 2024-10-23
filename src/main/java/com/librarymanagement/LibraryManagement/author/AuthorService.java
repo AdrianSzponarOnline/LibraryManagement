@@ -1,11 +1,5 @@
 package com.librarymanagement.LibraryManagement.author;
-
-import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
-import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.author.exception.AuthorNotFoundException;
-import com.librarymanagement.LibraryManagement.book.Book;
-import com.librarymanagement.LibraryManagement.book.BookRepository;
-import com.librarymanagement.LibraryManagement.book.BookService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +14,10 @@ import java.util.stream.Collectors;
 @Service
 public class AuthorService {
     private final AuthorRepository authorRepository;
-    private final BookService bookService;
-    private final BookRepository bookRepository;
 
     @Autowired
-    public AuthorService(AuthorRepository authorRepository, BookService bookService, BookRepository bookRepository) {
+    public AuthorService(AuthorRepository authorRepository) {
         this.authorRepository = authorRepository;
-        this.bookService = bookService;
-        this.bookRepository = bookRepository;
     }
 
     // Create
@@ -47,6 +37,7 @@ public class AuthorService {
 
         return authorRepository.save(author);
     }
+
     public HashSet<Author> saveAuthors(Set<Author> authors) {
         HashSet<Author> savedAuthors = new HashSet<>();
 
@@ -77,7 +68,6 @@ public class AuthorService {
         return savedAuthors;
     }
 
-
     // Read
     public List<Author> getAllAuthors() {
 
@@ -88,7 +78,16 @@ public class AuthorService {
         Optional<Author> author = authorRepository.findById(id);
         return author.orElseThrow(() -> new AuthorNotFoundException("Author with id " + id + " does not exist"));
     }
+
     public Optional<Author> getAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(Author author) {
+        return authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
+                author.getFirstName(),
+                author.getLastName(),
+                author.getNationality(),
+                author.getDateOfBirth()
+        );
+    }
+    public Optional<Author> getAuthorByAuthorInfo(Author author) {
         return authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
                 author.getFirstName(),
                 author.getLastName(),
@@ -123,20 +122,8 @@ public class AuthorService {
             throw new EntityNotFoundException("Author with id " + id + " not found");
         }
     }
-    @Transactional
-    public Book removeAuthorFromBook(long bookId, long authorId) {
-        Book book = bookService.findBookOrThrow(bookId);
-        Author author = findAuthorOrThrow(authorId);
 
-        if (!book.getAuthors().contains(author)) {
-            throw new IllegalArgumentException("Author with id " + authorId + " is not associated with book id " + bookId);
-        }
 
-        book.removeAuthor(author);
-        author.removeBook(book);
-
-        return bookRepository.save(book);
-    }
 
     // helper method
     @Transactional
@@ -145,48 +132,8 @@ public class AuthorService {
     }
 
     // helper methods
-    private Author findAuthorOrThrow(long id) {
+    public Author findAuthorOrThrow(long id) {
         return authorRepository.findById(id)
                 .orElseThrow(() -> new AuthorNotFoundException("Author with id " + id + " does not exist"));
     }
-    @Transactional
-    public Book addAuthorToBook(long bookId, Author author) {
-        // Znajdź książkę lub rzuć wyjątek, jeśli nie istnieje
-        Book book = bookService.findBookOrThrow(bookId);
-
-        // Sprawdzenie, czy książka już zawiera tego autora
-        if (book.getAuthors().stream().anyMatch(existingAuthor ->
-                existingAuthor.getFirstName().equals(author.getFirstName()) &&
-                        existingAuthor.getLastName().equals(author.getLastName()) &&
-                        existingAuthor.getNationality().equals(author.getNationality()) &&
-                        existingAuthor.getDateOfBirth().equals(author.getDateOfBirth())
-        )) {
-            throw new IllegalArgumentException("Book with id " + bookId + " already contains this author");
-        }
-
-        // Szukanie autora w bazie danych
-        Optional<Author> authorInDb = authorRepository.findByAuthorInfo(
-                author.getFirstName(),
-                author.getLastName(),
-                author.getNationality(),
-                author.getDateOfBirth()
-        );
-
-        if (authorInDb.isPresent()) {
-            // Jeśli autor istnieje, dodaj go do książki
-            Author existingAuthor = authorInDb.get();
-            book.getAuthors().add(existingAuthor);
-            // Zaktualizowanie relacji dwukierunkowej
-            existingAuthor.getBooks().add(book);
-        } else {
-            // Jeśli autor nie istnieje, zapisz nowego autora
-            saveAuthor(author);
-            book.getAuthors().add(author);
-            author.getBooks().add(book);
-        }
-
-        // Zapisz zaktualizowaną książkę i zwróć wynik
-        return bookRepository.save(book);
-    }
-
 }
