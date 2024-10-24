@@ -1,5 +1,4 @@
 package com.librarymanagement.LibraryManagement.book;
-import com.librarymanagement.LibraryManagement.book.BookService;
 import com.librarymanagement.LibraryManagement.author.Author;
 import com.librarymanagement.LibraryManagement.author.AuthorService;
 import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
@@ -7,7 +6,9 @@ import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookMapper;
 import com.librarymanagement.LibraryManagement.book.dto.FullBookDTO;
+import com.librarymanagement.LibraryManagement.category.Category;
 import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
+import com.librarymanagement.LibraryManagement.category.dto.CategoryMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +30,6 @@ public class BookController {
         this.bookService = bookService;
         this.authorService = authorService;
     }
-    @GetMapping("/hello")
-    public String hello(Model model) {
-        System.out.println("HelloController: /hello endpoint called");
-        model.addAttribute("Adrian", java.time.LocalDate.now());
-        return "hello";
-    }
 
     @GetMapping(value = "/books")
     public ResponseEntity<List<BookDTO>> getAllBooks() {
@@ -49,7 +44,7 @@ public class BookController {
 
     @GetMapping("/books/{id}")
     public ResponseEntity<BookDTO> getBookById(@PathVariable long id) {
-        BookDTO bookDTO = bookService.getBookById(id);
+        BookDTO bookDTO = BookMapper.toDto(bookService.getBookById(id));
         return ResponseEntity.ok(bookDTO);
     }
 
@@ -80,7 +75,8 @@ public class BookController {
 
     @PostMapping(value = "/books/{bookId}/categories")
     public ResponseEntity<BookDTO> addCategoryToBook(@PathVariable long bookId,@Valid @RequestBody final CategoryDTO categoryDTO) {
-        Book toUpdate = bookService.addCategoryToBook(bookId, categoryDTO);
+        Category category = CategoryMapper.toCategory(categoryDTO);
+        Book toUpdate = bookService.addCategoryToBook(bookId, category);
         if(toUpdate == null) {
             return ResponseEntity.notFound().build();
         }

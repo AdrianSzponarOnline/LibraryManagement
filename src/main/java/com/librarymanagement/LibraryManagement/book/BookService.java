@@ -2,21 +2,16 @@ package com.librarymanagement.LibraryManagement.book;
 
 import com.librarymanagement.LibraryManagement.author.Author;
 import com.librarymanagement.LibraryManagement.author.AuthorService;
-import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
 import com.librarymanagement.LibraryManagement.book.exception.BookAlreadyExistsException;
 import com.librarymanagement.LibraryManagement.book.exception.BookNotFoundException;
 import com.librarymanagement.LibraryManagement.category.Category;
 import com.librarymanagement.LibraryManagement.category.CategoryService;
-import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
-import com.librarymanagement.LibraryManagement.category.dto.CategoryMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
-import static com.librarymanagement.LibraryManagement.book.dto.BookMapper.toDto;
 
 
 @Service
@@ -34,7 +29,7 @@ public class BookService {
 
     @Transactional
     public Book saveBook(Book toSave) throws BookAlreadyExistsException {
-        // Process authors.html and categories if present, otherwise assign empty sets
+
         Set<Author> authors = new HashSet<>();
         Set<Category> categories = new HashSet<>();
 
@@ -64,10 +59,10 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public BookDTO getBookById(long id) {
+    public Book getBookById(long id) {
         Optional<Book> book = bookRepository.findById(id);
         if (book.isPresent()) {
-            return toDto(book.get());
+            return book.get();
         } else {
             throw new BookNotFoundException("Book not found");
         }
@@ -78,25 +73,25 @@ public class BookService {
     public Book updateBook(long id, Book toUpdate) {
         Book inDb = findBookOrThrow(id);
 
-        // Aktualizacja podstawowych pól
+        // updating basic fields
         inDb.setTitle(toUpdate.getTitle());
         inDb.setIsbn(toUpdate.getIsbn());
         inDb.setYear(toUpdate.getYear());
 
-        // Aktualizacja autorów
+        // updating authors
         if (toUpdate.getAuthors() != null && !toUpdate.getAuthors().isEmpty()) {
             Set<Author> updatedAuthors = processAuthors(toUpdate.getAuthors(), inDb);
-            inDb.setAuthors(updatedAuthors);  // Aktualizuj autorów w encji z bazy (inDb)
+            inDb.setAuthors(updatedAuthors);  // updating authors in entity from database
         }
 
         // Aktualizacja kategorii
         if (toUpdate.getCategories() != null && !toUpdate.getCategories().isEmpty()) {
             Set<Category> updatedCategories = processCategories(new HashSet<>(toUpdate.getCategories()), inDb);
-            inDb.setCategories(updatedCategories);  // Aktualizuj kategorie w encji z bazy (inDb)
+            inDb.setCategories(updatedCategories);  // updating categories in entity from db
         }
 
-        // Zapisz zaktualizowaną książkę
-        return bookRepository.save(inDb);  // Zapisujemy encję pobraną z bazy, a nie toUpdate
+        // saving updated book
+        return bookRepository.save(inDb);
     }
 
 
@@ -119,10 +114,10 @@ public class BookService {
 
     @Transactional
     public Book addAuthorToBook(long bookId, Author author) {
-        // Znajdź książkę lub rzuć wyjątek, jeśli nie istnieje
+        // Find book or throw an exception if book does not exist
         Book book = findBookOrThrow(bookId);
 
-        // Sprawdzenie, czy książka już zawiera tego autora
+        // Checking if book already is associated with author
         if (book.getAuthors().stream().anyMatch(existingAuthor ->
                 existingAuthor.getFirstName().equals(author.getFirstName()) &&
                         existingAuthor.getLastName().equals(author.getLastName()) &&
@@ -133,31 +128,36 @@ public class BookService {
         }
 
 
-        // Szukanie autora w bazie danych
+        // Checking if author is present in db
         Optional<Author> authorInDb = authorService.getAuthorByAuthorInfo(author
         );
 
         if (authorInDb.isPresent()) {
-            // Jeśli autor istnieje, dodaj go do książki
+            // If author does exist in db, associate him with book
             Author existingAuthor = authorInDb.get();
             book.getAuthors().add(existingAuthor);
-            // Zaktualizowanie relacji dwukierunkowej
+            // Updating bidirectional relationship
             existingAuthor.getBooks().add(book);
         } else {
-            // Jeśli autor nie istnieje, zapisz nowego autora
+            // if author does not exist in db, create new entity and build relationships
             authorService.saveAuthor(author);
             book.getAuthors().add(author);
             author.getBooks().add(book);
         }
 
-        // Zapisz zaktualizowaną książkę i zwróć wynik
+        // Save updated book and return result
         return bookRepository.save(book);
     }
+
     @Transactional
     public Book removeAuthorFromBook(long bookId, long authorId) {
+        // Check if book exists in db or throw an exception
         Book book = findBookOrThrow(bookId);
+
+        // same here
         Author author = authorService.findAuthorOrThrow(authorId);
 
+        // check if author is associated with book
         if (!book.getAuthors().contains(author)) {
             throw new IllegalArgumentException("Author with id " + authorId + " is not associated with book id " + bookId);
         }
@@ -169,51 +169,46 @@ public class BookService {
     }
 
     @Transactional
-    public Book addCategoryToBook(long bookId, CategoryDTO categoryToAdd) {
+    public Book addCategoryToBook(long bookId, Category categoryToAdd) {
         Book book = findBookOrThrow(bookId);
-        Category newCategory = CategoryMapper.toCategory(categoryToAdd);
         categoryService.getByName(categoryToAdd.getCategoryName());
 
-        book.addCategory(newCategory);
+        book.addCategory(categoryToAdd);
         return bookRepository.save(book);
     }
 
-    private void checkIfBookExists(Book book) {
+    private boolean checkIfBookExists(Book book) {
         Optional<Book> existingBook = bookRepository.findBookByTitleAndAuthorsAndYear(
-                book.getTitle(), book.getAuthors(), book.getYear()
+                book.getTitle(),
+                book.getAuthors(),
+                book.getYear()
         );
-        if (existingBook.isPresent()) {
-            throw new BookAlreadyExistsException("Book already exists");
-        }
+        return existingBook.isPresent();
     }
 
-
+    //method to process categories from set, checking if they are persisted in db or associated with book
     @Transactional
-    protected Set<Category> processCategories(Set<Category> categoryDTOs, Book book) {
+    protected Set<Category> processCategories(Set<Category> categories, Book book) {
+        // Fetching data about categories to database
+        Set<Category> categoriesInDB = new HashSet<>(categoryService.findAll());
         Set<Category> processedCategories = new HashSet<>();
 
-        for (Category categoryToProcess : categoryDTOs) {
-            // Sprawdź, czy kategoria o danej nazwie już istnieje w bazie danych
-            Optional<Category> existingCategory = categoryService.getByName(categoryToProcess.getCategoryName());
-
-            Category category;
-            // Zapisz nową kategorię do bazy danych
-            category = existingCategory.orElseGet(() -> categoryService.createCategory(categoryToProcess));
-
-            // Dodaj kategorię do zbioru przetworzonych kategorii
-            processedCategories.add(category);
-
-            // Dodaj książkę do kategorii, jeśli nie jest już przypisana
-            category.getBooks().add(book);
-
-            // Dodaj kategorię do książki, jeśli nie jest już przypisana
-            book.getCategories().add(category);
+        // iterating through set of categories, checking if they are already saved in db
+        for (Category categoryToProcess : categories) {
+            if (!categoriesInDB.contains(categoryToProcess)) {
+                // if category is not present in db, save it in database
+                categoryService.createCategory(categoryToProcess);
+                processedCategories.add(categoryToProcess);
+            } else {
+                processedCategories.add(categoryToProcess);
+            }
         }
+        book.setCategories(processedCategories);
 
         return processedCategories;
     }
 
-
+    @Transactional
     protected Set<Author> processAuthors(Set<Author> authorsToProcess, Book book) {
         Set<Author> existingAuthors = book.getAuthors() != null ? book.getAuthors() : new HashSet<>();
 
