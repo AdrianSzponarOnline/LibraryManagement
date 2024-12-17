@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDate;
 
-public class BaseAuthorDTO implements AuthorDTO{
+public class BaseAuthorDTO implements AuthorDTO {
 
     @NotNull(message = "First name cannot be null")
     @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s]{1,45}$", message = "First name must be between 1 and 45 characters and contain only letters and spaces")
@@ -24,7 +24,8 @@ public class BaseAuthorDTO implements AuthorDTO{
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
 
-    public BaseAuthorDTO() {}
+    public BaseAuthorDTO() {
+    }
 
     public BaseAuthorDTO(String firstName, String lastName, String nationality, LocalDate dateOfBirth) {
         this.firstName = firstName;
@@ -32,8 +33,6 @@ public class BaseAuthorDTO implements AuthorDTO{
         this.nationality = nationality;
         this.dateOfBirth = dateOfBirth;
     }
-
-
 
 
     @Override

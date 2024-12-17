@@ -3,6 +3,7 @@ package com.librarymanagement.LibraryManagement.author.dto;
 import com.librarymanagement.LibraryManagement.book.dto.BaseBookDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDate;
@@ -27,7 +28,7 @@ public class FullAuthorDTO implements AuthorDTO {
     private String nationality;
 
     @NotNull(message = "Date of birth cannot be null")
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in the format yyyy-mm-dd")
+    @Past(message = "Date of birth must be in past")
     private LocalDate dateOfBirth;
 
     private List<BaseBookDTO> books;

@@ -6,11 +6,9 @@ import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.book.Book;
 import com.librarymanagement.LibraryManagement.category.Category;
 import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
+import com.librarymanagement.LibraryManagement.category.dto.CategoryMapper;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BookMapper {
@@ -28,45 +26,32 @@ public class BookMapper {
         dto.setAuthors(authors);
 
         List<CategoryDTO> categories = book.getCategories().stream()
-                .map(c -> {
-                    CategoryDTO categoryDTO = new CategoryDTO();
-                    categoryDTO.setId(c.getId());
-                    categoryDTO.setCategoryName(c.getCategoryName());
-                    return categoryDTO;
-                })
+                .map(CategoryMapper::toCategoryDTO)
                 .collect(Collectors.toList());
-
         dto.setCategories(categories);
 
         return dto;
     }
-
     public static Book toEntity(BookDTO dto) {
         Book book = new Book();
         book.setTitle(dto.getTitle());
         book.setIsbn(dto.getIsbn());
         book.setYear(dto.getYear());
 
-        // Map authors.html
+        // Map
         if (dto instanceof FullBookDTO fullBookDTO) {
             Set<Author> authors = fullBookDTO.getAuthors().stream()
                     .map(AuthorMapper::toEntity)
-                    .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator
-                            .comparing(Author::getFirstName)
-                            .thenComparing(Author::getLastName))));
+                    .collect(Collectors.toCollection(HashSet::new));
             book.setAuthors(authors);
 
             // Map categories
             Set<Category> categories = fullBookDTO.getCategories().stream()
-                    .map(c -> {
-                        Category category = new Category();
-                        category.setId(c.getId());
-                        category.setCategoryName(c.getCategoryName());
-                        return category;
-                    })
-                    .collect(Collectors.toCollection(TreeSet::new));
+                    .map(CategoryMapper::toCategory)
+                    .collect(Collectors.toCollection(HashSet::new));
             book.setCategories(categories);
         }
         return book;
     }
 }
+

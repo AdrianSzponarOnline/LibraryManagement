@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
-    Optional<Book> findBookByTitleAndAuthorsAndYear(String title, Set<Author> authors, int year);
+    Optional<Book> findByTitleAndYearAndIsbn(String title, int year, String isbn);
     @Modifying
     @Query(value = "DELETE FROM book_author WHERE author_id = :authorId", nativeQuery = true)
     void deleteBooksByAuthorId(@Param("authorId") long authorId);

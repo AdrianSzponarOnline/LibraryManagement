@@ -1,28 +1,75 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pl">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista Autorów</title>
+    <link rel="stylesheet" th:href="@{/css/authors.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Lista Autorów</h1>
-<table>
-    <thead>
-    <tr>
-        <th>Imię</th>
-        <th>Nazwisko</th>
-        <th>Narodowość</th>
-        <th>Data Urodzenia</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="author : ${authors}">
-        <td th:text="${author.firstName}">Imię</td>
-        <td th:text="${author.lastName}">Nazwisko</td>
-        <td th:text="${author.nationality}">Narodowość</td>
-        <td th:text="${author.dateOfBirth}">Data Urodzenia</td>
-    </tr>
-    </tbody>
-</table>
+<header>
+    <h1>Lista Autorów</h1>
+</header>
+
+<nav>
+    <ul>
+        <li><a th:href="@{/}" th:classappend="${activePage == 'home'} ? ' active'">Strona Główna</a></li>
+        <li><a th:href="@{/authors}" th:classappend="${activePage == 'authors'} ? ' active'">Autorzy</a></li>
+        <li><a th:href="@{/books}" th:classappend="${activePage == 'books'} ? ' active'">Książki</a></li>
+        <li><a th:href="@{/users}" th:classappend="${activePage == 'users'} ? ' active'">Użytkownicy</a></li>
+        <li><a th:href="@{/loans}" th:classappend="${activePage == 'loans'} ? ' active'">Wypożyczenia</a></li>
+        <li><a th:href="@{/contact}" th:classappend="${activePage == 'contact'} ? ' active'">Kontakt</a></li>
+    </ul>
+</nav>
+
+<main>
+    <div class="author-form">
+        <h2>Dodaj Autora</h2>
+        <form th:action="@{/authors}" method="post">
+            <label for="firstName">Imię:</label>
+            <input type="text" id="firstName" name="firstName" required>
+
+            <label for="lastName">Nazwisko:</label>
+            <input type="text" id="lastName" name="lastName" required>
+
+            <label for="nationality">Narodowość:</label>
+            <input type="text" id="nationality" name="nationality" required>
+
+            <label for="dateOfBirth">Data Urodzenia:</label>
+            <input type="date" id="dateOfBirth" name="dateOfBirth" required>
+
+            <button type="submit">Dodaj</button>
+        </form>
+    </div>
+
+    <h2>Lista Autorów</h2>
+
+    <!-- Kontener na karty autorów -->
+    <div id="authors-container" th:fragment="authors-container">
+        <div id="authors">
+            <div class="author-card" th:each="author : ${authorsPage.content}">
+                <p class="name" th:text="${author.firstName} + ' ' + ${author.lastName}">Imię Nazwisko</p>
+                <p th:text="'Narodowość: ' + ${author.nationality}">Narodowość</p>
+                <p th:text="'Data Urodzenia: ' + ${author.dateOfBirth}">Data Urodzenia</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginacja -->
+    <div class="pagination">
+        <button id="prev-page" th:if="${currentPage > 0}" th:data-page="${currentPage - 1}">Poprzednia</button>
+        <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <button class="page-button" th:data-page="${i}" th:text="${i + 1}"></button>
+        </span>
+        <button id="next-page" th:if="${currentPage < totalPages - 1}" th:data-page="${currentPage + 1}">Następna</button>
+    </div>
+    
+    <script src="/js/pagination.js"></script>
+</main>
+
+<footer>
+    <p>&copy; 2024 Zarządzanie Biblioteką</p>
+</footer>
 </body>
 </html>

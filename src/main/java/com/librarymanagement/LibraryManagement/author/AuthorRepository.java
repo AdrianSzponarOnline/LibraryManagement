@@ -1,5 +1,7 @@
 package com.librarymanagement.LibraryManagement.author;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,7 @@ import java.util.Set;
 
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long> {
+    Page<Author> findAll(Pageable pageable);
     Optional<Author> findByFirstNameAndLastName(String firstName, String lastName);
 
     Optional<Author> findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(String firstName, String lastName, String nationality, LocalDate dateOfBirth);
@@ -46,10 +49,10 @@ public interface AuthorRepository extends JpaRepository<Author, Long> {
                                      @Param("nationalities") Set<String> nationalities,
                                      @Param("datesOfBirth") Set<LocalDate> datesOfBirth);
 
-    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationalities AND a.dateOfBirth IN :datesOfBirth")
+    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationality AND a.dateOfBirth IN :datesOfBirth")
     Optional<Author> findByAuthorInfo(@Param("firstNames") String firstName,
                                      @Param("lastNames") String lastName,
-                                     @Param("nationalities") String nationalitie,
+                                     @Param("nationality") String nationality,
                                      @Param("datesOfBirth") LocalDate datesOfBirth);
 
 }

@@ -3,8 +3,11 @@ import com.librarymanagement.LibraryManagement.author.exception.AuthorNotFoundEx
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -70,8 +73,10 @@ public class AuthorService {
 
     // Read
     public List<Author> getAllAuthors() {
-
         return authorRepository.findAll();
+    }
+    public Page<Author> getAllAuthors(Pageable pageable) {
+        return authorRepository.findAll(pageable);
     }
 
     public Author getAuthorById(long id) {
@@ -87,13 +92,8 @@ public class AuthorService {
                 author.getDateOfBirth()
         );
     }
-    public Optional<Author> getAuthorByAuthorInfo(Author author) {
-        return authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
-                author.getFirstName(),
-                author.getLastName(),
-                author.getNationality(),
-                author.getDateOfBirth()
-        );
+    public Optional<Author> getAuthorByAuthorInfo(String firstName, String lastName, String nationality, LocalDate dateOfBirth) {
+        return authorRepository.findByAuthorInfo(firstName, lastName, nationality, dateOfBirth);
     }
 
     // Update

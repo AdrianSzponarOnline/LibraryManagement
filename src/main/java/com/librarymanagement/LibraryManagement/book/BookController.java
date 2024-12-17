@@ -11,13 +11,14 @@ import com.librarymanagement.LibraryManagement.category.dto.CategoryDTO;
 import com.librarymanagement.LibraryManagement.category.dto.CategoryMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -32,10 +33,17 @@ public class BookController {
     }
 
     @GetMapping(value = "/books")
-    public ResponseEntity<List<BookDTO>> getAllBooks() {
-        List<BookDTO> books = bookService.getAllBooks().stream()
-                .map(BookMapper::toDto)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<BookDTO>> getAllBooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir)
+    {
+        Sort sort = Sort.by(sortBy);
+        sort = sortDir.equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BookDTO> books = bookService.getAllBooks(pageable).map(BookMapper::toDto); //mapping books to dto
+
         if (books.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -96,11 +104,7 @@ public class BookController {
 
     @DeleteMapping(value = "/books/{id}")
     public ResponseEntity<Void> deleteBookById(@PathVariable final long id) {
-        if(bookService.deleteBookById(id)){
-            return ResponseEntity.noContent().build();
-        }else {
             return ResponseEntity.notFound().build();
-        }
     }
     @DeleteMapping("/books/{bookId}/authors/{authorId}")
     public ResponseEntity<Void> deleteAuthorFromBook(@PathVariable long bookId,

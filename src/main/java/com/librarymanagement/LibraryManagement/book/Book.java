@@ -119,8 +119,7 @@ public class Book implements Comparable<Book> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Book book = (Book) o;
-        return Objects.equals(isbn, book.isbn) ||
-                (Objects.equals(title, book.title) && Objects.equals(authors, book.authors) && year == book.year);
+        return id == book.id && year == book.year && Objects.equals(title, book.title) && Objects.equals(isbn, book.isbn);
     }
 
     @Override
