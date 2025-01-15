@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
+import java.util.stream.Collectors;
 
 
 @Service
@@ -32,27 +32,18 @@ public class BookService {
     @Transactional
     public Book saveBook(Book toSave) throws BookAlreadyExistsException {
 
-        Set<Author> authors = new HashSet<>();
-        Set<Category> categories = new HashSet<>();
-
-        if (toSave.getAuthors() != null && !toSave.getAuthors().isEmpty()) {
-            authors = processAuthors(toSave.getAuthors(), toSave);
-        }
-
-        if (toSave.getCategories() != null && !toSave.getCategories().isEmpty()) {
-            categories = processCategories(toSave.getCategories(), toSave);
-        }
-
-        // Set authors.html and categories to the book
-        toSave.setAuthors(authors);
-        toSave.setCategories(categories);
-
-        // Now, check if the book already exists
+        // 1. Sprawdzenie czy książka już istnieje
         if (checkIfBookExists(toSave)) {
             throw new BookAlreadyExistsException("Book already exists");
         }
 
-        // Save the book to persist the relationships
+        Set<Author> processedAuthors = authorService.saveAuthors(toSave.getAuthors());
+        toSave.setAuthors(processedAuthors);
+        // 3. Obsługa kategorii (analogicznie)
+        Set<Category> categories = processCategories(toSave.getCategories(), toSave);
+        toSave.setCategories(categories);
+
+        // 4. Zapis książki (relacje powinny być już powiązane w obiektach)
         return bookRepository.save(toSave);
     }
 
@@ -189,16 +180,27 @@ public class BookService {
     protected Set<Category> processCategories(Set<Category> categories, Book book) {
         Set<Category> processedCategories = new HashSet<>();
 
-        for (Category category : categories) {
-            Optional<Category> categoryInDB = categoryService.getByName(category.getCategoryName());
+        // Pobierz wszystkie nazwy kategorii
+        Set<String> categoryNames = categories.stream()
+                .map(Category::getCategoryName)
+                .collect(Collectors.toSet());
 
-            if (categoryInDB.isEmpty()) {
-                // If the category does not exist in the database, save it
+        // Pobierz istniejące kategorie z bazy danych
+        List<Category> existingCategories = categoryService.findAll();
+
+        // Przekształć na mapę dla szybszego dostępu
+        Map<String, Category> existingCategoriesMap = existingCategories.stream()
+                .collect(Collectors.toMap(Category::getCategoryName, c -> c));
+
+        for (Category category : categories) {
+            String categoryName = category.getCategoryName();
+            if (existingCategoriesMap.containsKey(categoryName)) {
+                // Jeśli kategoria istnieje w bazie, użyj jej
+                processedCategories.add(existingCategoriesMap.get(categoryName));
+            } else {
+                // Jeśli kategoria nie istnieje, zapisz nową
                 categoryService.createCategory(category);
                 processedCategories.add(category);
-            } else {
-                // Use the existing category from the database
-                processedCategories.add(categoryInDB.get());
             }
         }
 
@@ -207,11 +209,13 @@ public class BookService {
     }
 
 
+
     @Transactional
     protected Set<Author> processAuthors(Set<Author> authorsToProcess, Book book) {
-        Set<Author> existingAuthors = book.getAuthors() != null ? book.getAuthors() : new HashSet<>();
+        Set<Author> existingAuthors = new HashSet<>();
 
         for (Author authorToProcess : authorsToProcess) {
+            // Sprawdź, czy autor istnieje w bazie
             Optional<Author> existingAuthor = authorService.getAuthorByAuthorInfo(
                     authorToProcess.getFirstName(),
                     authorToProcess.getLastName(),
@@ -221,18 +225,22 @@ public class BookService {
 
             Author author;
             if (existingAuthor.isPresent()) {
+                // Jeśli autor istnieje, użyj go
                 author = existingAuthor.get();
             } else {
+                // Jeśli autor nie istnieje, zapisz go
                 author = authorToProcess;
-                authorService.saveAuthor(author);  // Zapisz autora przed dodaniem do książki
+                authorService.saveAuthor(author);
             }
 
-            if (!existingAuthors.contains(author)) {
-                existingAuthors.add(author);
-                author.getBooks().add(book);
-            }
+            // Dodaj autora do zbioru
+            existingAuthors.add(author);
+
+            // Powiąż autora z książką (relacja dwustronna)
+            author.getBooks().add(book);
         }
 
         return existingAuthors;
     }
+
 }

@@ -1,6 +1,6 @@
 package com.librarymanagement.LibraryManagement.book;
+
 import com.librarymanagement.LibraryManagement.author.Author;
-import com.librarymanagement.LibraryManagement.author.AuthorService;
 import com.librarymanagement.LibraryManagement.author.dto.AuthorMapper;
 import com.librarymanagement.LibraryManagement.author.dto.BaseAuthorDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
@@ -24,12 +24,10 @@ import java.net.URI;
 @RequestMapping("/api")
 public class BookController {
     private final BookService bookService;
-    private final AuthorService authorService;
 
     @Autowired
-    public BookController(BookService bookService, AuthorService authorService) {
+    public BookController(BookService bookService) {
         this.bookService = bookService;
-        this.authorService = authorService;
     }
 
     @GetMapping(value = "/books")
@@ -37,8 +35,7 @@ public class BookController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir)
-    {
+            @RequestParam(defaultValue = "asc") String sortDir) {
         Sort sort = Sort.by(sortBy);
         sort = sortDir.equalsIgnoreCase("asc") ? sort.ascending() : sort.descending();
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -67,7 +64,7 @@ public class BookController {
     }
 
     @PostMapping(value = "/books/{bookId}/authors")
-    public ResponseEntity<BookDTO> addAuthorToBook(@PathVariable long bookId,@Valid @RequestBody final BaseAuthorDTO authorDTO) {
+    public ResponseEntity<BookDTO> addAuthorToBook(@PathVariable long bookId, @Valid @RequestBody final BaseAuthorDTO authorDTO) {
         // Mapowanie BaseAuthorDTO do encji Author
         Author author = AuthorMapper.toEntity(authorDTO);
 
@@ -82,10 +79,10 @@ public class BookController {
     }
 
     @PostMapping(value = "/books/{bookId}/categories")
-    public ResponseEntity<BookDTO> addCategoryToBook(@PathVariable long bookId,@Valid @RequestBody final CategoryDTO categoryDTO) {
+    public ResponseEntity<BookDTO> addCategoryToBook(@PathVariable long bookId, @Valid @RequestBody final CategoryDTO categoryDTO) {
         Category category = CategoryMapper.toCategory(categoryDTO);
         Book toUpdate = bookService.addCategoryToBook(bookId, category);
-        if(toUpdate == null) {
+        if (toUpdate == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(BookMapper.toDto(toUpdate));
@@ -101,11 +98,12 @@ public class BookController {
     }
 
 
-
     @DeleteMapping(value = "/books/{id}")
     public ResponseEntity<Void> deleteBookById(@PathVariable final long id) {
-            return ResponseEntity.notFound().build();
+        bookService.deleteBookById(id);
+        return ResponseEntity.notFound().build();
     }
+
     @DeleteMapping("/books/{bookId}/authors/{authorId}")
     public ResponseEntity<Void> deleteAuthorFromBook(@PathVariable long bookId,
                                                      @PathVariable long authorId) {

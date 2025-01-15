@@ -1,5 +1,6 @@
 package com.librarymanagement.LibraryManagement.author.dto;
 
+import com.librarymanagement.LibraryManagement.ImageMetadata.ImageMetadata;
 import com.librarymanagement.LibraryManagement.book.dto.BaseBookDTO;
 import com.librarymanagement.LibraryManagement.book.dto.BookDTO;
 import jakarta.validation.constraints.NotNull;
@@ -12,8 +13,6 @@ import java.util.List;
 public class FullAuthorDTO implements AuthorDTO {
 
     private long id;
-
-
 
     @NotNull(message = "First name cannot be null")
     @Pattern(regexp = "^[A-Za-zÀ-ÖØ-öø-ÿ\\s]{1,45}$", message = "First name must be between 1 and 45 characters and contain only letters and spaces")
@@ -31,17 +30,20 @@ public class FullAuthorDTO implements AuthorDTO {
     @Past(message = "Date of birth must be in past")
     private LocalDate dateOfBirth;
 
+    private ImageMetadata imageMetadata;
+
     private List<BaseBookDTO> books;
 
     public FullAuthorDTO() {
     }
 
-    public FullAuthorDTO(String firstName, String lastName, String nationality, LocalDate dateOfBirth, List<BaseBookDTO> books) {
+    public FullAuthorDTO(String firstName, String lastName, LocalDate dateOfBirth, String nationality, List<BaseBookDTO> books, ImageMetadata imageMetadata) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.nationality = nationality;
         this.dateOfBirth = dateOfBirth;
+        this.nationality = nationality;
         this.books = books;
+        this.imageMetadata = imageMetadata;
     }
 
     public long getId() {
@@ -92,6 +94,13 @@ public class FullAuthorDTO implements AuthorDTO {
         this.dateOfBirth = dateOfBirth;
     }
 
+    public ImageMetadata getImageMetadata() {
+        return imageMetadata;
+    }
+
+    public void setImageMetadata(ImageMetadata imageMetadata) {
+        this.imageMetadata = imageMetadata;
+    }
 
     @Override
     public String toString() {

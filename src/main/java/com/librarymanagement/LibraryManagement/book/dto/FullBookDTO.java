@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FullBookDTO implements BookDTO{
+    private long id;
     @NotNull(message = "Title cannot be null")
     @Size(min = 1, max = 100, message = "Title must not be empty")
     private String title;
@@ -36,6 +37,13 @@ public class FullBookDTO implements BookDTO{
     public FullBookDTO() {
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getTitle() {
         return title;

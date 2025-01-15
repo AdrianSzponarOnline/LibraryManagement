@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class BookMapper {
     public static BookDTO toDto(Book book) {
         FullBookDTO dto = new FullBookDTO();
+        dto.setId(book.getId());
         dto.setTitle(book.getTitle());
         dto.setIsbn(book.getIsbn());
         dto.setYear(book.getYear());
@@ -34,6 +35,7 @@ public class BookMapper {
     }
     public static Book toEntity(BookDTO dto) {
         Book book = new Book();
+        book.setId(dto.getId());
         book.setTitle(dto.getTitle());
         book.setIsbn(dto.getIsbn());
         book.setYear(dto.getYear());

@@ -1,6 +1,7 @@
 package com.librarymanagement.LibraryManagement.author;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.librarymanagement.LibraryManagement.ImageMetadata.ImageMetadata;
 import com.librarymanagement.LibraryManagement.book.Book;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -38,6 +39,11 @@ public class Author implements Comparable<Author> {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @NotNull(message = "Last name cannot be empty")
     LocalDate dateOfBirth;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "image_metadata_id", referencedColumnName = "id")
+    private ImageMetadata imageMetadata;
+
 
 
     @ManyToMany(mappedBy = "authors", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH}, fetch = FetchType.LAZY)
@@ -102,16 +108,20 @@ public class Author implements Comparable<Author> {
         this.books = books;
     }
 
+    public ImageMetadata getImageMetadata() {
+        return imageMetadata;
+    }
+
+    public void setImageMetadata(ImageMetadata imageMetadata) {
+        this.imageMetadata = imageMetadata;
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Author author = (Author) o;
-        return Objects.equals(firstName, author.firstName)
-                && Objects.equals(lastName, author.lastName)
-                && Objects.equals(nationality, author.nationality)
-                && Objects.equals(dateOfBirth, author.dateOfBirth);
+        return Objects.equals(firstName, author.firstName) && Objects.equals(lastName, author.lastName) && Objects.equals(nationality, author.nationality) && Objects.equals(dateOfBirth, author.dateOfBirth);
     }
 
     @Override

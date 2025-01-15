@@ -1,4 +1,5 @@
 package com.librarymanagement.LibraryManagement.author;
+
 import com.librarymanagement.LibraryManagement.author.exception.AuthorNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,55 +27,43 @@ public class AuthorService {
     // Create
     @Transactional
     public Author saveAuthor(Author author) {
-        // Szukanie autora po imieniu, nazwisku oraz innych atrybutach
-        Optional<Author> existingAuthor = authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
-                author.getFirstName(),
-                author.getLastName(),
-                author.getNationality(),
-                author.getDateOfBirth()
-        );
-
-        if (existingAuthor.isPresent()) {
-            throw new IllegalArgumentException("Provided Author already exists");
-        }
 
         return authorRepository.save(author);
     }
-
+    @Transactional
     public HashSet<Author> saveAuthors(Set<Author> authors) {
-        HashSet<Author> savedAuthors = new HashSet<>();
 
-        // Pobierz wszystkich istniejących autorów na podstawie kluczowych informacji
+        Set<String> firstNames = authors.stream().map(Author::getFirstName).collect(Collectors.toSet());
+        Set<String> lastNames = authors.stream().map(Author::getLastName).collect(Collectors.toSet());
+        Set<String> nationalities = authors.stream().map(Author::getNationality).collect(Collectors.toSet());
+        Set<LocalDate> datesOfBirth = authors.stream().map(Author::getDateOfBirth).collect(Collectors.toSet());
+
+
         Set<Author> existingAuthors = new HashSet<>(authorRepository.findAllByAuthorInfo(
-                authors.stream().map(Author::getFirstName).collect(Collectors.toSet()),
-                authors.stream().map(Author::getLastName).collect(Collectors.toSet()),
-                authors.stream().map(Author::getNationality).collect(Collectors.toSet()),
-                authors.stream().map(Author::getDateOfBirth).collect(Collectors.toSet())
+                firstNames, lastNames, nationalities, datesOfBirth
         ));
 
-        // Sprawdź autorów, których jeszcze nie ma w bazie
-        for (Author author : authors) {
-            boolean exists = existingAuthors.stream().anyMatch(existingAuthor ->
-                    existingAuthor.getFirstName().equals(author.getFirstName()) &&
-                            existingAuthor.getLastName().equals(author.getLastName()) &&
-                            existingAuthor.getNationality().equals(author.getNationality()) &&
-                            existingAuthor.getDateOfBirth().equals(author.getDateOfBirth())
-            );
 
-            // Jeśli autor nie istnieje, zapisujemy go
-            if (!exists) {
-                Author savedAuthor = authorRepository.save(author);
-                savedAuthors.add(savedAuthor);
+        Set<Author> result = new HashSet<>(existingAuthors);
+
+
+        for (Author author : authors) {
+            if (!result.contains(author)) {
+
+                Author saved = authorRepository.save(author);
+                result.add(saved);
             }
         }
 
-        return savedAuthors;
+        return new HashSet<>(result);
     }
+
 
     // Read
     public List<Author> getAllAuthors() {
         return authorRepository.findAll();
     }
+
     public Page<Author> getAllAuthors(Pageable pageable) {
         return authorRepository.findAll(pageable);
     }
@@ -84,14 +73,6 @@ public class AuthorService {
         return author.orElseThrow(() -> new AuthorNotFoundException("Author with id " + id + " does not exist"));
     }
 
-    public Optional<Author> getAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(Author author) {
-        return authorRepository.findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
-                author.getFirstName(),
-                author.getLastName(),
-                author.getNationality(),
-                author.getDateOfBirth()
-        );
-    }
     public Optional<Author> getAuthorByAuthorInfo(String firstName, String lastName, String nationality, LocalDate dateOfBirth) {
         return authorRepository.findByAuthorInfo(firstName, lastName, nationality, dateOfBirth);
     }
@@ -100,6 +81,7 @@ public class AuthorService {
     @Transactional
     public Author updateAuthor(long id, Author authorDetails) {
         Author existingAuthor = findAuthorOrThrow(id);
+        existingAuthor.setId(authorDetails.getId());
         existingAuthor.setFirstName(authorDetails.getFirstName());
         existingAuthor.setLastName(authorDetails.getLastName());
         existingAuthor.setNationality(authorDetails.getNationality());
@@ -122,7 +104,6 @@ public class AuthorService {
             throw new EntityNotFoundException("Author with id " + id + " not found");
         }
     }
-
 
 
     // helper method

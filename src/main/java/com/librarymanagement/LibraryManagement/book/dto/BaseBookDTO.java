@@ -3,6 +3,8 @@ package com.librarymanagement.LibraryManagement.book.dto;
 import jakarta.validation.constraints.*;
 
 public class BaseBookDTO implements BookDTO{
+
+    private long id;
     @NotNull(message = "Title cannot be null")
     @Size(min = 1, max = 100, message = "Title must not be empty")
     private String title;
@@ -15,7 +17,15 @@ public class BaseBookDTO implements BookDTO{
     @Max(value = 2024, message = "Year should not me more than 2024")
     private int year;
 
+    @Override
+    public long getId() {
+        return id;
+    }
 
+    @Override
+    public void setId(long id) {
+        this.id = id;
+    }
 
     @Override
     public String getTitle() {

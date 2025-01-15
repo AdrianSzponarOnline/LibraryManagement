@@ -73,7 +73,6 @@ public class Category implements Comparable<Category> {
         return "Category{" +
                 "id=" + id +
                 ", name='" + categoryName + '\'' +
-                ", books=" + books +
                 '}';
     }
 

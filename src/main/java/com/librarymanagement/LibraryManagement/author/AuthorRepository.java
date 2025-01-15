@@ -15,17 +15,17 @@ import java.util.Set;
 
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long> {
-    Page<Author> findAll(Pageable pageable);
-    Optional<Author> findByFirstNameAndLastName(String firstName, String lastName);
 
-    Optional<Author> findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(String firstName, String lastName, String nationality, LocalDate dateOfBirth);
+    Page<Author> findAll(Pageable pageable);
+
+    Optional<Author> findAuthorByFirstNameAndLastNameAndNationalityAndDateOfBirth(
+            String firstName, String lastName, String nationality, LocalDate dateOfBirth);
 
     boolean existsById(Long id);
 
     @Modifying
     @Query(value = "DELETE FROM book_author WHERE book_id = :bookId", nativeQuery = true)
     void deleteAuthorsByBookId(@Param("bookId") Long bookId);
-
 
 
     @Modifying
@@ -43,17 +43,17 @@ public interface AuthorRepository extends JpaRepository<Author, Long> {
                                @Param("dateOfBirth") LocalDate dateOfBirth);
 
 
-    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationalities AND a.dateOfBirth IN :datesOfBirth")
+    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationalities AND a.dateOfBirth IN :dateOfBirth")
     List<Author> findAllByAuthorInfo(@Param("firstNames") Set<String> firstNames,
                                      @Param("lastNames") Set<String> lastNames,
                                      @Param("nationalities") Set<String> nationalities,
-                                     @Param("datesOfBirth") Set<LocalDate> datesOfBirth);
+                                     @Param("dateOfBirth") Set<LocalDate> datesOfBirth);
 
-    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationality AND a.dateOfBirth IN :datesOfBirth")
+    @Query("SELECT a FROM Author a WHERE a.firstName IN :firstNames AND a.lastName IN :lastNames AND a.nationality IN :nationality AND a.dateOfBirth IN :dateOfBirth")
     Optional<Author> findByAuthorInfo(@Param("firstNames") String firstName,
-                                     @Param("lastNames") String lastName,
-                                     @Param("nationality") String nationality,
-                                     @Param("datesOfBirth") LocalDate datesOfBirth);
+                                      @Param("lastNames") String lastName,
+                                      @Param("nationality") String nationality,
+                                      @Param("dateOfBirth") LocalDate datesOfBirth);
 
 }
 

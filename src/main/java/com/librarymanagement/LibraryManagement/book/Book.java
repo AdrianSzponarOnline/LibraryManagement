@@ -25,7 +25,7 @@ public class Book implements Comparable<Book> {
     private int year;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH},
-            fetch = FetchType.EAGER)
+            fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_author",
             joinColumns = @JoinColumn(name = "book_id"),
@@ -33,7 +33,8 @@ public class Book implements Comparable<Book> {
     )
     private Set<Author> authors = new TreeSet<>();
 
-    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.MERGE, CascadeType.PERSIST})
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.MERGE, CascadeType.PERSIST},
+            fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_category", //tabela pośrednicząca
             joinColumns = @JoinColumn(name = "book_id"), //kolumna powiązana z encją Book
@@ -109,8 +110,6 @@ public class Book implements Comparable<Book> {
                 ", title='" + title + '\'' +
                 ", isbn='" + isbn + '\'' +
                 ", year=" + year +
-                ", authors.html=" + authors +
-                ", categories=" + categories +
                 '}';
     }
 

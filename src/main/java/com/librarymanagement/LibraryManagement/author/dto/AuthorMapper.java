@@ -11,10 +11,12 @@ public class AuthorMapper {
 
     public static FullAuthorDTO toDTO(Author author) {
         FullAuthorDTO fullAuthorDTO = new FullAuthorDTO();
+        fullAuthorDTO.setId(author.getId());
         fullAuthorDTO.setFirstName(author.getFirstName());
         fullAuthorDTO.setLastName(author.getLastName());
         fullAuthorDTO.setNationality(author.getNationality());
         fullAuthorDTO.setDateOfBirth(author.getDateOfBirth());
+        fullAuthorDTO.setImageMetadata(author.getImageMetadata());
 
         //map books
         if (author.getBooks() != null) {
@@ -35,24 +37,29 @@ public class AuthorMapper {
 
     public static BaseAuthorDTO toBaseDTO(Author author) {
         BaseAuthorDTO baseAuthorDTO = new BaseAuthorDTO();
+        baseAuthorDTO.setId(author.getId());
         baseAuthorDTO.setFirstName(author.getFirstName());
         baseAuthorDTO.setLastName(author.getLastName());
         baseAuthorDTO.setNationality(author.getNationality());
         baseAuthorDTO.setDateOfBirth(author.getDateOfBirth());
+        baseAuthorDTO.setImageMetadata(author.getImageMetadata());
         return baseAuthorDTO;
     }
 
     public static Author toEntity(BaseAuthorDTO authorDTO) {
         Author author = new Author();
+        author.setId(authorDTO.getId());
         author.setFirstName(authorDTO.getFirstName());
         author.setLastName(authorDTO.getLastName());
         author.setNationality(authorDTO.getNationality());
         author.setDateOfBirth(authorDTO.getDateOfBirth());
+        author.setImageMetadata(authorDTO.getImageMetadata());
         return author;
     }
 
     public static Author toEntity(FullAuthorDTO fullAuthorDTO) {
         Author author = new Author();
+        author.setId(fullAuthorDTO.getId());
         author.setFirstName(fullAuthorDTO.getFirstName());
         author.setLastName(fullAuthorDTO.getLastName());
         author.setNationality(fullAuthorDTO.getNationality());
