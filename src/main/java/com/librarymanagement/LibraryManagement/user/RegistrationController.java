@@ -11,7 +11,6 @@ public class RegistrationController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Konstruktor z wstrzykiwaniem (to jest prawidłowe miejsce na @Autowired)
     @Autowired
     public RegistrationController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -21,7 +20,7 @@ public class RegistrationController {
     // Rejestracja użytkownika
     @PostMapping
     public String registerUser(@RequestBody RegistrationRequest request) {
-        // Sprawdź, czy user już istnieje
+          // Czy User istnieje?
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return "Username already taken.";
         }
